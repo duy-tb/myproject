@@ -1,0 +1,19 @@
+<?php
+	$db = mysqli_connect("localhost", "root", "", "testdb");
+	session_start();
+	
+	$myShopCart = $_REQUEST['shopcartArray'];
+	
+	foreach($myShopCart as $k){
+		$quantity = $k['quantity'];
+		$soluong = $k['soluong'];
+		$tmpSoluong = $soluong - $quantity;
+		$id = $k['id'];
+		if( !($tmpSoluong < 0)){
+			$sql = "UPDATE `product` SET `SoLuong`= '$tmpSoluong' WHERE `ID`= '$id'";
+			mysqli_query($db, $sql);
+		}
+	}
+?>
+
+
