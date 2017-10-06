@@ -1,0 +1,203 @@
+var product = [];
+var shopcart = [];
+var login;
+GetCookie();
+HienThiGioHang();
+
+$(document).ready(function(){
+	var data = "welcome";
+	var dataString= 'session=' + data;
+	$.ajax({
+		type: "POST",
+		url: "/Terra/Server/modules/session.php",
+		cache:false,
+		data: dataString,
+		success: function(abc){
+			if(abc != ""){
+				document.getElementById('content2').innerHTML = "<div>Hello "+ abc +".</div>";
+				document.getElementById("logIn").style.display = "none";
+				document.getElementById("logOut").style.display = "";
+				if(abc == "admin"){
+					document.getElementById("productManager").style.display = "";
+				}else{
+					document.getElementById("productManager").style.display = "none";
+				}
+			}else{
+				document.getElementById("logIn").style.display = "";
+				document.getElementById("logOut").style.display = "none";
+				document.getElementById("productManager").style.display = "none";
+			}
+		}
+	});
+	
+	// Get the modal
+	var modal = document.getElementById('myModal');
+
+	// Get the button that opens the modal
+	var shopcartclick = document.getElementById("shopcart-pop-up");
+
+	// Get the <span> element that closes the modal
+	var span = document.getElementsByClassName("close")[0];
+
+	// When the user clicks the button, open the modal 
+	shopcartclick.onclick = function(e) {
+		e.preventDefault();
+		if(login == ""){
+			alert("Please login");
+		}else{
+			modal.style.display = "block";
+		}
+	}
+
+	// When the user clicks on <span> (x), close the modal
+	span.onclick = function() {
+		modal.style.display = "none";
+	}
+
+	// When the user clicks anywhere outside of the modal, close it
+	window.onclick = function(event) {
+		if (event.target == modal) {
+			modal.style.display = "none";
+		}
+	}
+	
+	var data = "shopcart";
+	var dataString= 'session=' + data;
+	$.ajax({
+		type: "POST",
+		url: "/Terra/Server/modules/session.php",
+		cache:false,
+		data: dataString,
+		success: function(abc){
+			login = abc;	
+		}
+	});
+	
+	var xuly = 'hienthi=0';
+	$.ajax({
+		type: "POST",
+		url: "/Terra/Server/modules/productManager/showProduct.php",
+		cache:false,
+		data: xuly,
+		dataType: "json",
+		success: function(result){
+			product = result;
+			var myContent = "";
+			for(var i = 0; i< product.length; i++){
+				myContent+="<div class='col-md-4 col-sm-6 col-xs-6 col-xxs-12 work-item'>";
+				myContent+="<a><form>";
+				myContent+="<img src='images/work_1.jpg' alt='Free HTML5 Website Template by FreeHTML5.co' class='img-responsive'>";
+				myContent+="<h3 class='fh5co-work-title' id='tensp"+ product[i].ID +"'>	"+product[i].Name+"</h3>";
+				myContent+="<p style='text-weight:bold;'>Mô tả:</p><p id='motasp"+ product[i].ID +"'>"	+product[i].MoTa+ "</p>";
+				myContent+="<p style='text-weight:bold;'>Giá:</p><p id='giasp"+ product[i].ID +"'>"	+product[i].Gia+ "</p>";
+				myContent+="<p style='text-weight:bold;'>Số lượng:</p><p id='soluongsp"+ product[i].ID +"'>"	+product[i].SoLuong+ "</p>";
+				myContent+="<button class='click' id='"+ product[i].ID +"' >Add to card</button>";
+				myContent+="</form></a></div>";
+			}
+			document.getElementById('content1').innerHTML = myContent;
+			//alert(result);
+	}
+	});
+	
+	$(document).on('click', 'button', function(e){
+		e.preventDefault();
+		var id_tmp = this.id;
+		var tensp = $("#tensp" +id_tmp).text();
+		var motasp = $("#motasp" +id_tmp).text();
+		var giasp = $("#giasp" +id_tmp).text();
+		var soluongsp = $("#soluongsp" +id_tmp).text();
+		
+		if(login == ""){
+			alert("Please log in");
+			location.reload();
+			}else{
+			var sanpham = {
+				"id" : id_tmp,
+				"ten" : tensp,
+				"mota" : motasp,
+				"gia" : giasp,
+				"soluong" : soluongsp,
+				"quantity" : 1
+			};
+			themSP(sanpham);
+			CapNhatCookie();
+			HienThiGioHang();
+			location.reload();
+		}
+	});
+	
+	var ThanhToan = document.getElementById("btnThanhToan");
+
+	ThanhToan.onclick = function(e) {
+		$.ajax({
+			type: "POST",
+			url: "/Terra/Server/modules/shopCart/thanhtoan.php",
+			cache: false,
+			data: {shopcartArray : shopcart},
+			success: function(abc){
+				e.preventDefault();
+				
+			}
+		});
+		shopcart = [];
+		CapNhatCookie();
+		alert("Thanh toán thành công");
+		location.reload();
+	}
+});
+
+function themSP(obj){
+	if(shopcart == null)
+		shopcart = obj;
+	else{
+		for(var i = 0; i<shopcart.length; i++){
+			if(shopcart[i].id == obj.id){
+				if(shopcart[i].quantity < shopcart[i].soluong){
+					shopcart[i].quantity +=1;
+				}else{
+					alert("Sản phẩm "+ shopcart[i].ten+ " đã hết.");
+				}
+				return false;	
+			}
+		}
+		shopcart.push(obj);
+	}
+}
+
+function HienThiGioHang(){
+	var innerHtml = '<table width="100%" border="1"> <tr style="text-weight:bold; color: black;text-align: center;"> <td>Mã Sản Phẩm</td> <td>Tên Sản Phẩm</td> <td>Giá Tiền</td> <td>Số lượng</td> </tr>';
+	
+	for(i=0;i<shopcart.length;i++){
+		var sanpham = shopcart[i];
+		innerHtml += '<tr style="text-align: center; color:black;"> <td>'+sanpham.id+'</td>  <td>'+sanpham.ten+'</td> <td>'+sanpham.gia+'</td> <td><input style="text-align:center;" type = "text" id = "tensp" class = "box" value='+sanpham.quantity+'></td> </tr>';
+	}
+	innerHtml += '</table><input id="btnThanhToan" type="submit" value="Thanh toán" />';
+	$("#content3").html(innerHtml);
+}
+
+function CapNhatCookie()
+{
+	var str_object = JSON.stringify(shopcart);
+	document.cookie = "cookie_object="+str_object;
+}
+
+function GetCookie()
+{
+	try{
+	doc_ds_tu_cookie = doc_Cookie("cookie_object");
+	shopcart = doc_ds_tu_cookie==""?[]:JSON.parse(doc_ds_tu_cookie);
+	}catch(e)
+	{
+	}
+}
+
+function doc_Cookie(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length,c.length);
+    }
+    return "";
+}
