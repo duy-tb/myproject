@@ -1,0 +1,6 @@
+/**
+ * Class Maintenance
+ * @package AppBundle\Entity
+ * @ORM\Entity(repositoryClass="AppBundle\Repository\MaintenanceRepository")
+ * @ORM\Table(name = "maintenance")
+ */
