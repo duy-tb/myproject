@@ -1,0 +1,24 @@
+/**
+     * @param $request
+     * @return bool
+     */
+    public function addProduct($request){
+        $name = $request->request->get('tensp');
+        $mota = $request->request->get('motasp');
+        $gia = $request->request->get('giasp');
+        $soluong = $request->request->get('soluongsp');
+        $file = $request->files->get('upload');
+        $path = "%kernel.root_dir%/../../web/public/images";
+        $file->move($path, $file->getClientOriginalName());
+
+        $em = $this->getEntityManager();
+        $product = new Product();
+        $product->setNameProduct($name);
+        $product->setMotaProduct($mota);
+        $product->setGiaProduct($gia);
+        $product->setSoluongProduct($soluong);
+        $product->setHinhanhProduct($file->getClientOriginalName());
+        $em->persist($product);
+        $em->flush();
+        return true;
+    }
